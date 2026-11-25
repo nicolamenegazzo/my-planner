@@ -1,0 +1,8 @@
+# esclusi dal contesto di build dell'immagine
+.git
+.idea
+.run
+.vscode
+target
+src/main/frontend/node_modules
+*.iml

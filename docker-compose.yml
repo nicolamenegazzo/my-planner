@@ -1,0 +1,35 @@
+services:
+  mongo:
+    image: mongo:8.0
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  # applicazione MyMonday: http://localhost:8080
+  app:
+    build: .
+    image: my-monday:latest
+    pull_policy: build # ricostruisce l'immagine a ogni "up", così parte sempre il codice corrente
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/mymonday
+      # in produzione impostare valori propri (es. in un file .env accanto a questo compose)
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-change-me-dev-secret-change-me}
+      APP_ADMIN_USERNAME: ${APP_ADMIN_USERNAME:-admin}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-admin1234}
+      MONDAY_API_TOKEN: ${MONDAY_API_TOKEN:-}
+
+volumes:
+  mongo-data:
